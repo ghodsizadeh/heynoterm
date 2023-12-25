@@ -14,7 +14,16 @@ class Language(Enum):
 @dataclass
 class Block:
     text: str
-    language: Language
+    language: Language = Language.PYTHON
+
+    def to_terminal(self, index: int) -> str:
+        from app import TextAreaBox
+
+        tab = TextAreaBox()
+        tab.text = self.text
+        tab.language = self.language
+        tab.index = index
+        return tab
 
 
 @dataclass
@@ -49,7 +58,8 @@ class DataManager:
             self.path = Path.home() / ".heynoterm.json"
         else:
             self.path = path
-        self.state = AppState()
+        self.state: AppState = AppState()
+        self.load()
 
     def load(self) -> None:
         """Load the data from the path."""
@@ -64,8 +74,12 @@ class DataManager:
         with open(self.path, "w") as f:
             f.write(self.state.to_json())
 
-    def add_block(self, block: Block, index: Optional[int] = None) -> None:
+    def add_block(
+        self, block: Optional[Block] = None, index: Optional[int] = None
+    ) -> None:
         """Add a block to the state."""
+        if block is None:
+            block = Block(text="", language=Language.MARKDOWN)
         if index is not None:
             self.state.blocks.insert(index, block)
         else:

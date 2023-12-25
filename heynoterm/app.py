@@ -4,6 +4,9 @@ from textual.reactive import reactive
 from textual.widgets import Button, Footer, Header, Static, TextArea, Rule
 from textual.widget import Widget
 from textual import events
+from heynoterm.state import DataManager, AppState, Block
+
+dm = DataManager()
 
 
 class TextAreaComponent(TextArea):
@@ -14,6 +17,7 @@ class TextAreaComponent(TextArea):
     """
 
     name = reactive("World")
+    index = reactive(0)
 
     def on_change(self) -> None:
         print("before")
@@ -23,8 +27,9 @@ class TextAreaComponent(TextArea):
     def _on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
         print("key")
-        with open(f"{self.name}.txt", "w") as f:
-            f.write(self.text)
+        # with open(f"{self.name}.txt", "w") as f:
+        #     f.write(self.text)
+        dm.update_block(self.index, Block(text=self.text, language=self.language))
 
 
 class TextAreaLang(Widget):
@@ -50,6 +55,7 @@ class TextAreaBox(Static):
 
     text = reactive("World")
     language = reactive("python")
+    index = reactive(0)
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
@@ -57,6 +63,7 @@ class TextAreaBox(Static):
         text_component.register_language("javascript", "javascript")
         text_component.language = self.language
         text_component.styles.background = "darkblue"
+        text_component.index = self.index
         yield text_component
         tal = TextAreaLang(id="TextAreaLang")
         tal.langs = self.language
@@ -101,7 +108,10 @@ class HeyNoteApp(App):
         """Called to add widgets to the app."""
         yield Header()
         yield Footer()
-        yield ScrollableContainer(TextAreaBox("abs"), id="blocks")
+        state: AppState = dm.state
+        blocks = [b.to_terminal(index=i) for i, b in enumerate(state.blocks)]
+
+        yield ScrollableContainer(*blocks, id="blocks")
 
     def update_print_x(self, text):
         print(text, "pppp")
@@ -111,12 +121,15 @@ class HeyNoteApp(App):
     def action_add_block(self) -> None:
         """An action to add a text block."""
         self.count += 1
-        new = TextAreaBox()
+        new: TextAreaBox = TextAreaBox()
         new.text = f"Hello {self.count}"
+        new.index = self.count
         if self.count % 2 == 0:
             new.styles.background = "blue"
         new.styles.background = "red"
+
         self.query_one("#blocks").mount(new)
+        dm.add_block(block=Block(text=new.text, language=new.language))
         new.scroll_visible()
         new.focus()
 
