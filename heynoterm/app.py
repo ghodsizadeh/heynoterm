@@ -83,10 +83,7 @@ class TextAreaBox(Static):
             text_area.refresh()
             # self.query_one("TextAreaComponent").refresh()
     def action_change_language(self) -> None:
-        if self.language == "python":
-            self.language = "markdown"
-        else:
-            self.language = "python"
+        self.language = "markdown" if self.language == "python" else "python"
         self.refresh()
 
 
@@ -112,7 +109,7 @@ class HeyNoteApp(App):
     
     def update_print_x(self, text):
         print(text,'pppp')
-        with open(f"ali.txt", "w") as f:
+        with open("ali.txt", "w") as f:
             f.write("xx",text)
 
     def action_add_block(self) -> None:
