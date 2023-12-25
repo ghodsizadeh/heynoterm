@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from heynoterm.state import Block, AppState, DataManager
 
+
 @pytest.fixture(scope="function")
 def data_path() -> Path:
     # create a data.json file and delete it after the test
@@ -16,15 +17,10 @@ def data_manager(data_path) -> DataManager:
     return DataManager(path=data_path)
 
 
-
-
-
 def test_block_to_json(data_manager):
     block = Block(text="Hello", language="python")
     assert block.text == "Hello"
     assert block.language == "python"
-
-    
 
 
 def test_app_state_to_json():
@@ -37,11 +33,12 @@ def test_app_state_to_json():
     expected_json = json.dumps(expected_dict, indent=4)
     # assert json data is equal to expected json
     assert json_data == expected_json
-    
-    
+
 
 def test_app_state_from_json():
-    app_state = AppState.from_json('{"blocks": [{"text": "Hello", "language": "python"}]}')
+    app_state = AppState.from_json(
+        '{"blocks": [{"text": "Hello", "language": "python"}]}'
+    )
     assert len(app_state.blocks) == 1
     assert app_state.blocks[0].text == "Hello"
     assert app_state.blocks[0].language == "python"
@@ -60,7 +57,9 @@ def test_data_manager_save(data_manager: DataManager, data_path: Path):
     data_manager.add_block(Block(text="Hello", language="python"))
     data_manager.save()
     assert data_path.exists()
-    assert json.loads(data_path.read_text()) == {"blocks": [{"text": "Hello", "language": "python"}]}
+    assert json.loads(data_path.read_text()) == {
+        "blocks": [{"text": "Hello", "language": "python"}]
+    }
 
 
 def test_data_manager_add_block(data_manager: DataManager):
@@ -71,7 +70,6 @@ def test_data_manager_add_block(data_manager: DataManager):
 
 
 def test_data_manager_remove_block(data_manager: DataManager):
-    
     block = Block(text="Hello", language="python")
     data_manager.add_block(block)
     data_manager.remove_block(0)
