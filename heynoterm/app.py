@@ -5,6 +5,9 @@ from textual.widgets import Button, Footer, Header, Static, TextArea, Rule
 from textual.widget import Widget
 from textual import events
 from heynoterm.state import DataManager, AppState, Block
+from textual import log
+from textual.message import Message
+
 
 dm = DataManager()
 
@@ -18,6 +21,14 @@ class TextAreaComponent(TextArea):
 
     name = reactive("World")
     index = reactive(0)
+    BINDINGS = [
+        ("ctrl+d", "remove_block", "Remove Block"),
+    ]
+
+    class RemoveBlock(Message):
+        """A message to remove a block."""
+
+        pass
 
     def _on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
@@ -25,6 +36,23 @@ class TextAreaComponent(TextArea):
         # with open(f"{self.name}.txt", "w") as f:
         #     f.write(self.text)
         dm.update_block(self.index, Block(text=self.text, language=self.language))
+
+    def action_add_x(self) -> None:
+        """An action to add a text block."""
+        self.text += "X"
+
+    def action_remove_block(self) -> None:
+        """Called to remove a timer."""
+        # self.remove()
+        q = self.query()
+        log(q)
+        for i in q:
+            log(i)
+        print(q)
+        print("remove child")
+        self.post_message(self.RemoveBlock())
+        print("remove after child")
+        # dm.remove_block(index=self.index)
 
 
 class TextAreaLang(Widget):
@@ -66,6 +94,16 @@ class TextAreaBox(Static):
         yield Button("Change language", variant="primary", id="change_language")
 
         yield Rule(line_style="thick", id="rule1")
+
+    # def on_remove_block(self, event: TextAreaComponent.RemoveBlock) -> None:
+    #     print("remove parent")
+    #     self.remove()
+    def on_text_area_component_remove_block(
+        self, event: TextAreaComponent.RemoveBlock
+    ) -> None:
+        print("remove parent")
+        self.remove()
+        dm.remove_block(index=self.index)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "change_language":
@@ -110,10 +148,10 @@ class HeyNoteApp(App):
 
     def action_add_block(self) -> None:
         """An action to add a text block."""
-        self.count += 1
         new: TextAreaBox = TextAreaBox()
         new.text = f"Hello {self.count}"
         new.index = self.count
+        self.count += 1
 
         self.query_one("#blocks").mount(new)
         dm.add_block(block=Block(text=new.text, language=new.language))
