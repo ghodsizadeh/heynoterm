@@ -14,7 +14,7 @@ class Language(Enum):
 @dataclass
 class Block:
     text: str
-    language: Language = Language.PYTHON
+    language: str = Language.PYTHON.name
 
     def to_terminal(self, index: int) -> str:
         from heynoterm.block import BlockComponent
@@ -65,7 +65,10 @@ class DataManager:
         """Load the data from the path."""
         if self.path.exists():
             with open(self.path, "r") as f:
-                self.state = AppState.from_json(f.read())
+                try:
+                    self.state = AppState.from_json(f.read())
+                except json.JSONDecodeError:
+                    self.save()
         else:
             self.save()
 
@@ -79,7 +82,7 @@ class DataManager:
     ) -> None:
         """Add a block to the state."""
         if block is None:
-            block = Block(text="", language=Language.MARKDOWN)
+            block = Block(text="", language=Language.MARKDOWN.value)
         if index is not None:
             self.state.blocks.insert(index, block)
         else:
