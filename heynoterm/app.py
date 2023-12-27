@@ -19,11 +19,6 @@ class TextAreaComponent(TextArea):
     name = reactive("World")
     index = reactive(0)
 
-    def on_change(self) -> None:
-        print("before")
-        self.app.update_print_x(f"Saved {self.name}.txt")
-        print("after")
-
     def _on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
         print("key")
@@ -62,7 +57,8 @@ class TextAreaBox(Static):
         text_component = TextAreaComponent(self.text, name=self.text)
         text_component.register_language("javascript", "javascript")
         text_component.language = self.language
-        text_component.styles.background = "darkblue"
+        # theme="dracula" or "monokai" %2 == 0
+        text_component.theme = "monokai" if self.index % 2 == 0 else "dracula"
         text_component.index = self.index
         yield text_component
         tal = TextAreaLang(id="TextAreaLang")
@@ -71,17 +67,16 @@ class TextAreaBox(Static):
 
         yield Rule(line_style="thick", id="rule1")
 
-    def action_add_x(self):
-        self.text += "xxx"
-
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "change_language":
             self.action_change_language()
-            # self.query_one("TextAreaLang").change_lang(self.language)
             text_area = self.query_one("TextAreaComponent")
             text_area.language = self.language
+            # update state
+            dm.update_block(
+                self.index, Block(text=text_area.text, language=self.language)
+            )
             text_area.refresh()
-            # self.query_one("TextAreaComponent").refresh()
 
     def action_change_language(self) -> None:
         if self.language == "python":
@@ -110,13 +105,8 @@ class HeyNoteApp(App):
         yield Footer()
         state: AppState = dm.state
         blocks = [b.to_terminal(index=i) for i, b in enumerate(state.blocks)]
-
+        self.count = len(blocks)
         yield ScrollableContainer(*blocks, id="blocks")
-
-    def update_print_x(self, text):
-        print(text, "pppp")
-        with open("ali.txt", "w") as f:
-            f.write("xx", text)
 
     def action_add_block(self) -> None:
         """An action to add a text block."""
@@ -124,9 +114,6 @@ class HeyNoteApp(App):
         new: TextAreaBox = TextAreaBox()
         new.text = f"Hello {self.count}"
         new.index = self.count
-        if self.count % 2 == 0:
-            new.styles.background = "blue"
-        new.styles.background = "red"
 
         self.query_one("#blocks").mount(new)
         dm.add_block(block=Block(text=new.text, language=new.language))
@@ -136,9 +123,10 @@ class HeyNoteApp(App):
     def action_remove_stopwatch(self) -> None:
         """Called to remove a timer."""
         timers = self.query("TextAreaBox")
-        self.count -= 1
         if timers:
             timers.last().remove()
+            dm.remove_block(index=self.count - 1)
+        self.count -= 1
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
