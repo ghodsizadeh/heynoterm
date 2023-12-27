@@ -17,13 +17,13 @@ class Block:
     language: Language = Language.PYTHON
 
     def to_terminal(self, index: int) -> str:
-        from app import TextAreaBox
+        from heynoterm.block import BlockComponent
 
-        tab = TextAreaBox()
-        tab.text = self.text
-        tab.language = self.language
-        tab.index = index
-        return tab
+        new_block = BlockComponent()
+        new_block.text = self.text
+        new_block.language = self.language
+        new_block.index = index
+        return new_block
 
 
 @dataclass
@@ -95,3 +95,6 @@ class DataManager:
         """Update a block in the state."""
         self.state.blocks[index] = block
         self.save()
+
+
+dm = DataManager()
