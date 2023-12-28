@@ -55,6 +55,11 @@ class HeyNoteApp(App):
         self.dark = not self.dark  # type: ignore
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Run the app."""
     app = HeyNoteApp()
     app.run()
+
+
+if __name__ == "__main__":
+    main()

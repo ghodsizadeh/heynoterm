@@ -16,6 +16,9 @@ mypy = "^1.8.0"
 pre-commit = "^3.6.0"
 ruff = "^0.1.9"
 
+[tool.poetry.scripts]
+heynoterm = "heynoterm.app:main"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
