@@ -6,6 +6,8 @@ from textual import events
 from textual import log
 from textual.message import Message
 from textual.css.query import NoMatches
+from textual.widgets.text_area import Selection
+
 
 from heynoterm.state import dm, Block, Language as LanguageType
 
@@ -57,6 +59,7 @@ class TextAreaComponent(TextArea):
         ("ctrl+n", "next_block", "Next Block"),
         ("ctrl+b", "previous_block", "Previous Block"),
         ("ctrl+a", "select_all", "Select All"),
+        ("ctrl+z", "split_block", "Split Block"),
     ]
 
     class RemoveBlock(Message):
@@ -75,6 +78,17 @@ class TextAreaComponent(TextArea):
         # with open(f"{self.name}.txt", "w") as f:
         #     f.write(self.text)
         dm.update_block(self.index, Block(text=self.text, language=self.language))
+
+    def action_split_block(self) -> None:
+        """Split the block into two blocks."""
+        print("split block")
+        # for now select text before cursor
+        self.selection = Selection((0, 0), self.get_cursor_word_right_location())
+        # get text before cursor and after cursor
+        before_text = self.selected_text
+        after_text = self.text[len(before_text) :]
+        print(before_text, after_text)
+        # TODO: remove block and add two blocks
 
     def action_next_block(self) -> None:
         """Move focus to next text area"""
