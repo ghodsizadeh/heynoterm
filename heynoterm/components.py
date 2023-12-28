@@ -1,14 +1,13 @@
-from textual.app import ComposeResult, RenderResult
+from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual.widget import Widget
 from textual import events
 from textual import log
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
 
-
+from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
 
 
@@ -52,6 +51,7 @@ class TextAreaComponent(TextArea):
 
     name = reactive("World")
     index = reactive(0)
+    math = reactive(False)
 
     BINDINGS = [
         ("ctrl+d", "remove_block", "Remove Block"),
@@ -72,12 +72,26 @@ class TextAreaComponent(TextArea):
 
         pass
 
-    def _on_key(self, event: events.Key) -> None:
+    async def on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
-        print("key")
+        key = event.key if event.is_printable else ""
+
         # with open(f"{self.name}.txt", "w") as f:
         #     f.write(self.text)
-        dm.update_block(self.index, Block(text=self.text, language=self.language))
+        text = self.text
+        print("key", event.key, self.text[-1:], key, text[-1:])
+
+        dm.update_block(
+            self.index,
+            Block(text=text, language="math" if self.math else self.language),
+        )
+        if self.math:
+            print("math")
+            evaluator = MathBlockEvaluator()
+            results = evaluator.process_block(text)
+            for i, result in enumerate(results):
+                print(i, result)
+            print(evaluator.variables)
 
     def action_split_block(self) -> None:
         """Split the block into two blocks."""
@@ -122,21 +136,3 @@ class TextAreaComponent(TextArea):
         self.post_message(self.RemoveBlock())
         print("remove after child")
         # dm.remove_block(index=self.index)
-
-
-class TextAreaLang(Widget):
-    """A widget that displays language of a text area."""
-
-    langs: str = reactive("python")
-
-    def on_click(self) -> None:
-        print("click")
-        self.langs = "javascript"
-        # self.refresh()
-
-    def change_lang(self, lang: str):
-        self.langs = lang
-        self.refresh()
-
-    def render(self) -> RenderResult:
-        return f"W language: {self.langs}"

@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, Rule
-from heynoterm.components import LanguageList, TextAreaComponent, TextAreaLang
+from heynoterm.components import LanguageList, TextAreaComponent
 from textual.css.query import NoMatches
 from heynoterm.state import dm, Block, Language as LanguageType
 
@@ -19,13 +19,13 @@ class BlockComponent(Static):
             self.text, name=self.text, id=f"TextAreaComponent_{self.index}"
         )
         text_component.register_language("javascript", "javascript")
-        text_component.language = self.language
+        text_component.language = "python" if self.language == "math" else self.language
+        text_component.math = self.language == "math"
         # theme="dracula" or "monokai" %2 == 0
         text_component.theme = "monokai" if self.index % 2 == 0 else "dracula"
         text_component.index = self.index
         yield text_component
-        tal = TextAreaLang(id="TextAreaLang")
-        tal.langs = self.language
+
         # yield Button("Change language", variant="primary", id="change_language")
 
         yield Rule(line_style="thick", id="rule1")
@@ -67,7 +67,8 @@ class BlockComponent(Static):
     def action_change_language(self, language: LanguageType) -> None:
         self.language = language.value
         text_area = self.query_one("TextAreaComponent")
-        text_area.language = self.language
+        text_area.language = "python" if self.language == "math" else self.language
+        text_area.math = self.language == "math"
         # update state
         dm.update_block(self.index, Block(text=text_area.text, language=self.language))
         text_area.refresh()
