@@ -56,6 +56,7 @@ class TextAreaComponent(TextArea):
         ("ctrl+l", "change_language", "Change Language"),
         ("ctrl+n", "next_block", "Next Block"),
         ("ctrl+b", "previous_block", "Previous Block"),
+        ("ctrl+a", "select_all", "Select All"),
     ]
 
     class RemoveBlock(Message):
@@ -97,7 +98,7 @@ class TextAreaComponent(TextArea):
 
     def action_remove_block(self) -> None:
         """Called to remove a timer."""
-        # self.remove()
+
         q = self.query()
         log(q)
         for i in q:
