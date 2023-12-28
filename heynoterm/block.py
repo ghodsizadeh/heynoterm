@@ -2,7 +2,7 @@ from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, Rule
 from heynoterm.components import LanguageList, TextAreaComponent, TextAreaLang
-
+from textual.css.query import NoMatches
 from heynoterm.state import dm, Block, Language as LanguageType
 
 
@@ -15,7 +15,9 @@ class BlockComponent(Static):
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        text_component = TextAreaComponent(self.text, name=self.text)
+        text_component = TextAreaComponent(
+            self.text, name=self.text, id=f"TextAreaComponent_{self.index}"
+        )
         text_component.register_language("javascript", "javascript")
         text_component.language = self.language
         # theme="dracula" or "monokai" %2 == 0
@@ -38,12 +40,20 @@ class BlockComponent(Static):
     async def on_text_area_component_change_language_list(
         self, event: TextAreaComponent.ChangeLanguageList
     ) -> None:
-        print("change language list")
-        language_list = LanguageList()
+        try:
+            # it will raise an error if it doesn't exist
+            self.query_one("LanguageList").query_one("RadioSet").focus()
+
+            return
+        except NoMatches:
+            pass
+
+        language_list = LanguageList(id=f"LanguageList_{self.index}")
         language_list.language = self.language
         await self.mount(language_list, before="Rule")
 
         self.refresh()
+        language_list.query_one("RadioSet").focus()
 
     async def on_language_list_language_changed(
         self, event: LanguageList.LanguageChanged
