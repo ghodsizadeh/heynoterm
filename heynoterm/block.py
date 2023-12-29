@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
-from textual.widgets import Static, Rule
+from textual.widgets import Static
 from heynoterm.components import LanguageList, TextAreaComponent
 from textual.css.query import NoMatches
 from heynoterm.state import dm, Block, Language as LanguageType
@@ -28,7 +28,7 @@ class BlockComponent(Static):
 
         # yield Button("Change language", variant="primary", id="change_language")
 
-        yield Rule(line_style="thick", id="rule1")
+        # yield Rule(line_style="thick", id="rule1")
 
     def on_text_area_component_remove_block(
         self, event: TextAreaComponent.RemoveBlock
@@ -50,7 +50,7 @@ class BlockComponent(Static):
 
         language_list = LanguageList(id=f"LanguageList_{self.index}")
         language_list.language = self.language
-        await self.mount(language_list, before="Rule")
+        await self.mount(language_list)
 
         self.refresh()
         language_list.query_one("RadioSet").focus()
