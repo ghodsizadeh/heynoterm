@@ -11,7 +11,7 @@ from heynoterm.state import dm, Block
 class HeyNoteApp(App):
     """A Textual app to manage stopwatches."""
 
-    CSS_PATH = "stopwatch.tcss"
+    CSS_PATH = "heynoterm.tcss"
 
     BINDINGS = [
         ("d", "toggle_dark", "Toggle dark mode"),
