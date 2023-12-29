@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static
-from heynoterm.components import LanguageList, TextAreaComponent
+from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from textual.css.query import NoMatches
 from heynoterm.state import dm, Block, Language as LanguageType
 
@@ -25,8 +25,9 @@ class BlockComponent(Static):
         text_component.theme = "monokai" if self.index % 2 == 0 else "dracula"
         text_component.index = self.index
         yield text_component
-
-        # yield Button("Change language", variant="primary", id="change_language")
+        if self.language == "math":
+            math_res = MathResult()
+            yield math_res
 
         # yield Rule(line_style="thick", id="rule1")
 
@@ -55,6 +56,16 @@ class BlockComponent(Static):
         self.refresh()
         language_list.query_one("RadioSet").focus()
 
+    def on_text_area_component_math_result_message(
+        self, event: TextAreaComponent.MathResultMessage
+    ) -> None:
+        try:
+            math_result_component = self.query_one("MathResult")
+            math_result_component.results = event.results
+            self.refresh()
+        except NoMatches:
+            pass
+
     async def on_language_list_language_changed(
         self, event: LanguageList.LanguageChanged
     ) -> None:
@@ -64,11 +75,32 @@ class BlockComponent(Static):
 
         self.action_change_language(language=LanguageType(event.language))
 
+    def update_math_result_component(self) -> None:
+        if self.language != "math":
+            try:
+                math_result_component = self.query_one("MathResult")
+                math_result_component.remove()
+            except NoMatches:
+                pass
+            return
+        if self.language == "math":
+            try:
+                math_result_component = self.query_one("MathResult")
+                math_result_component.results = {}
+                return
+            except NoMatches:
+                pass
+        math_result_component = MathResult()
+        self.mount(math_result_component)
+        self.refresh()
+
     def action_change_language(self, language: LanguageType) -> None:
         self.language = language.value
         text_area = self.query_one("TextAreaComponent")
         text_area.language = "python" if self.language == "math" else self.language
         text_area.math = self.language == "math"
+        self.update_math_result_component()
+
         # update state
         dm.update_block(self.index, Block(text=text_area.text, language=self.language))
         text_area.refresh()

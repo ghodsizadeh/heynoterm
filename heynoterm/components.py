@@ -1,45 +1,18 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual import events
-from textual import log
+from textual import events, log
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
+from rich.console import RenderableType
+
 
 from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
 
 
-class LanguageList(Static):
-    language = reactive("x")
-
-    def compose(self) -> ComposeResult:
-        with RadioSet(id="language_list"):
-            for language in LanguageType:
-                print(
-                    "xx", self.language, language.value, language.value == self.language
-                )
-                yield RadioButton(
-                    language.value,
-                    value=language.value == self.language,
-                    id=language.name,
-                )
-
-    async def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
-        print(event.pressed.value, "was pressed")
-        print(event.pressed.label, "was pressed")
-        self.post_message(self.LanguageChanged(str(event.pressed.label).lower()))
-
-    class LanguageChanged(Message):
-        """A message to change language."""
-
-        def __init__(self, language: str) -> None:
-            super().__init__()
-
-            self.language = language
-
-        # self.refresh()
+# self.refresh()
 
 
 class TextAreaComponent(TextArea):
@@ -52,6 +25,7 @@ class TextAreaComponent(TextArea):
     name = reactive("World")
     index = reactive(0)
     math = reactive(False)
+    math_result = reactive({})
 
     BINDINGS = [
         ("ctrl+d", "remove_block", "Remove Block"),
@@ -71,6 +45,13 @@ class TextAreaComponent(TextArea):
         """A message to change language."""
 
         pass
+
+    class MathResultMessage(Message):
+        """A message to change language."""
+
+        def __init__(self, results: dict) -> None:
+            self.results = results
+            super().__init__()
 
     async def on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
@@ -92,6 +73,7 @@ class TextAreaComponent(TextArea):
             for i, result in enumerate(results):
                 print(i, result)
             print(evaluator.variables)
+            self.post_message(self.MathResultMessage(results=evaluator.variables))
 
     def action_split_block(self) -> None:
         """Split the block into two blocks."""
@@ -136,3 +118,46 @@ class TextAreaComponent(TextArea):
         self.post_message(self.RemoveBlock())
         print("remove after child")
         # dm.remove_block(index=self.index)
+
+
+class LanguageList(Static):
+    language = reactive("x")
+
+    def compose(self) -> ComposeResult:
+        with RadioSet(id="language_list"):
+            for language in LanguageType:
+                print(
+                    "xx", self.language, language.value, language.value == self.language
+                )
+                yield RadioButton(
+                    language.value,
+                    value=language.value == self.language,
+                    id=language.name,
+                )
+
+    async def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
+        print(event.pressed.value, "was pressed")
+        print(event.pressed.label, "was pressed")
+        self.post_message(self.LanguageChanged(str(event.pressed.label).lower()))
+
+    class LanguageChanged(Message):
+        """A message to change language."""
+
+        def __init__(self, language: str) -> None:
+            super().__init__()
+
+            self.language = language
+
+
+class MathResult(Static):
+    """
+    A widget to display the result of a math evaluation.
+    Which came from a dictionary of variables.
+    """
+
+    results = reactive({})
+
+    def render(self) -> RenderableType:
+        if not self.results:
+            return "Results will be displayed here"
+        return ",".join(f"{key} = {value}" for key, value in self.results.items())
