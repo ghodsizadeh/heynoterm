@@ -53,8 +53,9 @@ class TextAreaComponent(TextArea):
             self.results = results
             super().__init__()
 
-    async def on_key(self, event: events.Key) -> None:
+    async def _on_key(self, event: events.Key) -> None:
         """Save the text on key press on a file."""
+        await super()._on_key(event)
         key = event.key if event.is_printable else ""
 
         # with open(f"{self.name}.txt", "w") as f:
