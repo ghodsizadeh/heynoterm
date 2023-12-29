@@ -4,6 +4,7 @@ from textual.widgets import Static
 from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from textual.css.query import NoMatches
 from heynoterm.state import dm, Block, Language as LanguageType
+from textual.containers import Horizontal
 
 
 class BlockComponent(Static):
@@ -24,10 +25,17 @@ class BlockComponent(Static):
         # theme="dracula" or "monokai" %2 == 0
         text_component.theme = "monokai" if self.index % 2 == 0 else "dracula"
         text_component.index = self.index
-        yield text_component
-        if self.language == "math":
-            math_res = MathResult()
-            yield math_res
+        # yield text_component
+        with Horizontal(id=f"Horizontal_{self.index}"):
+            if self.language == "math":
+                math_res = MathResult()
+                # yield Horizontal(
+                #         text_component, math_res, id=f"Horizontal_{self.index}"
+                #     )
+                yield text_component
+                yield math_res
+            else:
+                yield text_component
 
         # yield Rule(line_style="thick", id="rule1")
 
@@ -91,7 +99,8 @@ class BlockComponent(Static):
             except NoMatches:
                 pass
         math_result_component = MathResult()
-        self.mount(math_result_component)
+        container = self.query_one("Horizontal")
+        container.mount(math_result_component)
         self.refresh()
 
     def action_change_language(self, language: LanguageType) -> None:

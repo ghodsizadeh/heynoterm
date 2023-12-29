@@ -74,7 +74,7 @@ class TextAreaComponent(TextArea):
             for i, result in enumerate(results):
                 print(i, result)
             print(evaluator.variables)
-            self.post_message(self.MathResultMessage(results=evaluator.variables))
+            self.post_message(self.MathResultMessage(results=evaluator.results))
 
     def action_split_block(self) -> None:
         """Split the block into two blocks."""
@@ -156,9 +156,11 @@ class MathResult(Static):
     Which came from a dictionary of variables.
     """
 
-    results = reactive({})
+    results = reactive([])
 
     def render(self) -> RenderableType:
         if not self.results:
             return "Results will be displayed here"
-        return ",".join(f"{key} = {value}" for key, value in self.results.items())
+        # return '\n'.join(self.results)
+        return "\n".join(f"{i+1} {res}" for i, res in enumerate(self.results))
+        # return ",".join(f"{key} = {value}" for key, value in self.results.items())

@@ -1,0 +1,27 @@
+TextAreaComponent {
+        height: auto;
+        max-height: 1fr;
+
+
+}
+TextArea {
+        height: auto;
+        max-height: 1fr;
+
+
+}
+
+Horizontal {
+  height: auto;
+}
+
+
+MathResult {
+      background: gray;
+     color: black;
+    width: 10%;
+    padding-left: 1;
+    border-bottom: solid black;
+
+
+}

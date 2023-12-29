@@ -5,6 +5,7 @@ class MathBlockEvaluator:
     def __init__(self):
         # Create a dictionary to store variables
         self.variables = {}
+        self.results = []
 
     def evaluate_expression(self, expression: str):
         if not expression.strip():
@@ -20,9 +21,9 @@ class MathBlockEvaluator:
             # Compile the expression to ast, then execute it safely
             code = compile(expression.strip(), "<string>", "eval")
             return eval(code, {"__builtins__": {}}, allowed_names)
-        except Exception as e:
+        except Exception:
             # Handle malformed expressions and other exceptions
-            return f"Error: {e}"
+            return ""
 
     def process_line(self, line):
         # Check if the line is an assignment
@@ -45,6 +46,7 @@ class MathBlockEvaluator:
         for line in lines:
             result = self.process_line(line)
             results.append(result)
+        self.results = results
         return results
 
 
