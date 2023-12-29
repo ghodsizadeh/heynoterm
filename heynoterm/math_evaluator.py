@@ -26,18 +26,16 @@ class MathBlockEvaluator:
             return ""
 
     def process_line(self, line):
-        # Check if the line is an assignment
-        if "=" in line:
-            # Split on the first '=' to handle the variable assignment
-            var_name, expr = line.split("=", 1)
-            # Strip spaces from the variable name
-            var_name = var_name.strip()
-            # Save the result of the expression to the variable
-            self.variables[var_name] = self.evaluate_expression(expr.strip())
-            return self.variables[var_name]
-        else:
+        if "=" not in line:
             # If it's not an assignment, evaluate it as a regular expression
             return self.evaluate_expression(line.strip())
+        # Split on the first '=' to handle the variable assignment
+        var_name, expr = line.split("=", 1)
+        # Strip spaces from the variable name
+        var_name = var_name.strip()
+        # Save the result of the expression to the variable
+        self.variables[var_name] = self.evaluate_expression(expr.strip())
+        return self.variables[var_name]
 
     def process_block(self, block_text):
         # Split the block text by lines and process each line

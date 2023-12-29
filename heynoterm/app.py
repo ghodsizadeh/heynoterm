@@ -44,8 +44,7 @@ class HeyNoteApp(App):
 
     def action_remove_stopwatch(self) -> None:
         """Called to remove a timer."""
-        timers = self.query("TextAreaBox")
-        if timers:
+        if timers := self.query("TextAreaBox"):
             timers.last().remove()
             dm.remove_block(index=self.count - 1)
         self.count -= 1

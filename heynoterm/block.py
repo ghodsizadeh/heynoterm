@@ -91,13 +91,12 @@ class BlockComponent(Static):
             except NoMatches:
                 pass
             return
-        if self.language == "math":
-            try:
-                math_result_component = self.query_one("MathResult")
-                math_result_component.results = {}
-                return
-            except NoMatches:
-                pass
+        try:
+            math_result_component = self.query_one("MathResult")
+            math_result_component.results = {}
+            return
+        except NoMatches:
+            pass
         math_result_component = MathResult()
         container = self.query_one("Horizontal")
         container.mount(math_result_component)
