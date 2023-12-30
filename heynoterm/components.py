@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual import events, log
+from textual import log
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
@@ -53,15 +53,10 @@ class TextAreaComponent(TextArea):
             self.results = results
             super().__init__()
 
-    async def _on_key(self, event: events.Key) -> None:
+    async def on_text_area_changed(self, event: TextArea.Changed):
         """Save the text on key press on a file."""
-        await super()._on_key(event)
-        key = event.key if event.is_printable else ""
 
-        # with open(f"{self.name}.txt", "w") as f:
-        #     f.write(self.text)
-        text = self.text
-        print("key", event.key, self.text[-1:], key, text[-1:])
+        text = event.text_area.text
 
         dm.update_block(
             self.index,
