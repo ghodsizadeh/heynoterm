@@ -3,6 +3,7 @@ from textual.reactive import reactive
 from textual.widgets import Static
 from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from textual.css.query import NoMatches
+from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
 from textual.containers import Horizontal
 
@@ -28,9 +29,11 @@ class BlockComponent(Static):
         with Horizontal(id=f"Horizontal_{self.index}"):
             if self.language == "math":
                 math_res = MathResult()
-                # yield Horizontal(
-                #         text_component, math_res, id=f"Horizontal_{self.index}"
-                #     )
+                evaluator = MathBlockEvaluator()
+                evaluator.process_block(self.text)
+                print("---- results ----")
+                math_res.results = evaluator.results
+
                 yield text_component
                 yield math_res
             else:
@@ -82,6 +85,12 @@ class BlockComponent(Static):
 
         self.action_change_language(language=LanguageType(event.language))
 
+    def get_math_result_from_text_area(self) -> list:
+        text_area = self.query_one("TextAreaComponent")
+        evaluator = MathBlockEvaluator()
+        evaluator.process_block(text_area.text)
+        return evaluator.results
+
     def update_math_result_component(self) -> None:
         if self.language != "math":
             try:
@@ -93,11 +102,12 @@ class BlockComponent(Static):
         if self.language == "math":
             try:
                 math_result_component = self.query_one("MathResult")
-                math_result_component.results = {}
+                math_result_component.results = self.get_math_result_from_text_area()
                 return
             except NoMatches:
                 pass
         math_result_component = MathResult()
+        math_result_component.results = self.get_math_result_from_text_area()
         container = self.query_one("Horizontal")
         container.mount(math_result_component)
         self.refresh()

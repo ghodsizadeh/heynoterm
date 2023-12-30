@@ -65,10 +65,7 @@ class TextAreaComponent(TextArea):
         if self.math:
             print("math")
             evaluator = MathBlockEvaluator()
-            results = evaluator.process_block(text)
-            for i, result in enumerate(results):
-                print(i, result)
-            print(evaluator.variables)
+            evaluator.process_block(text)
             self.post_message(self.MathResultMessage(results=evaluator.results))
 
     def action_split_block(self) -> None:
