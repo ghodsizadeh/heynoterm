@@ -6,8 +6,6 @@ TextAreaComponent {
 }
 TextArea {
         height: auto;
-        max-height: 1fr;
-
 
 }
 

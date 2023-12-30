@@ -25,7 +25,6 @@ class BlockComponent(Static):
         # theme="dracula" or "monokai" %2 == 0
         text_component.theme = "monokai" if self.index % 2 == 0 else "dracula"
         text_component.index = self.index
-        # yield text_component
         with Horizontal(id=f"Horizontal_{self.index}"):
             if self.language == "math":
                 math_res = MathResult()
@@ -59,7 +58,7 @@ class BlockComponent(Static):
 
         language_list = LanguageList(id=f"LanguageList_{self.index}")
         language_list.language = self.language
-        await self.mount(language_list)
+        await self.mount(language_list, after="TextAreaComponent")
 
         self.refresh()
         language_list.query_one("RadioSet").focus()
