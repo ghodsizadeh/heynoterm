@@ -6,7 +6,7 @@ authors = ["Mehdi Ghodsizadeh <mehdi.ghodsizadeh@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 textual = {extras = ["syntax"], version = "^0.46.0"}
 textual-dev = "^1.3.0"
 
