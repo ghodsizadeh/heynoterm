@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual import log
+from textual import log, events
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
@@ -52,6 +52,37 @@ class TextAreaComponent(TextArea):
         def __init__(self, results: dict) -> None:
             self.results = results
             super().__init__()
+
+    def convert_to_checkbox(self, event: events.Key):
+        """
+        Convert line that start with - [ ] to a checkbox
+        It will check if the line is starting with - [ ] and replace it with - [x]
+        This function only calls after user typed ]
+        and the line could have indentation
+        """
+        row, column = self.cursor_location  # type: ignore
+        text = self.text  # type: ignore
+        lines = text.split("\n")
+        line = lines[row]
+        # keep indentation
+
+        s_line = line.lstrip()
+        if s_line.startswith("- [ ]"):
+            line = line.replace("- [ ]", "- ✅")
+        if s_line.startswith("- [x]"):
+            line = line.replace("- [x]", "- ☑️")
+        lines[row] = line
+        text = "\n".join(lines)
+        self.text = text
+        self.cursor_location = (row, column)
+
+        pass
+
+    async def _on_key(self, event: events.Key) -> None:
+        await super()._on_key(event)
+        print("dir", dir(event))
+        if event.character == "]":
+            self.convert_to_checkbox(event)
 
     async def on_text_area_changed(self, event: TextArea.Changed):
         """Save the text on key press on a file."""
