@@ -53,6 +53,18 @@ class TextAreaComponent(TextArea):
             self.results = results
             super().__init__()
 
+    def _on_click(self, event: events.Click) -> None:
+        super()._on_click(event)
+        print("click", event.x, event.y)
+        row, column = event.screen_y - 1, event.screen_x - 4
+
+        print("Clicked at", row, column)
+        try:
+            print("text", self.get_text_range((row, column), (row, column + 1)))
+        except IndexError:
+            pass
+        print("selected text", self.get_text_range((0, 0), (0, 1)))
+
     def convert_to_checkbox(self, event: events.Key):
         """
         Convert line that start with - [ ] to a checkbox
@@ -60,6 +72,8 @@ class TextAreaComponent(TextArea):
         This function only calls after user typed ]
         and the line could have indentation
         """
+        unchecked_box = "☐"
+        checked_box = "☑"
         row, column = self.cursor_location  # type: ignore
         text = self.text  # type: ignore
         lines = text.split("\n")
@@ -68,9 +82,9 @@ class TextAreaComponent(TextArea):
 
         s_line = line.lstrip()
         if s_line.startswith("- [ ]"):
-            line = line.replace("- [ ]", "- ✅")
+            line = line.replace("- [ ]", f"- {unchecked_box}")
         if s_line.startswith("- [x]"):
-            line = line.replace("- [x]", "- ☑️")
+            line = line.replace("- [x]", f"- {checked_box}")
         lines[row] = line
         text = "\n".join(lines)
         self.text = text
