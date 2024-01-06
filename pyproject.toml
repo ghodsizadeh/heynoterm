@@ -9,6 +9,10 @@ readme = "README.md"
 python = "^3.9"
 textual = {extras = ["syntax"], version = "^0.46.0"}
 textual-dev = "^1.3.0"
+openai = "^1.6.1"
+
+[tool.poetry.extras]
+ai = ["openai"]
 
 
 [tool.poetry.group.dev.dependencies]
