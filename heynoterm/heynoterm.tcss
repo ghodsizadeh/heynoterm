@@ -1,6 +1,7 @@
 TextAreaComponent {
         height: auto;
         max-height: 1fr;
+        overflow: hidden;
 
 
 }

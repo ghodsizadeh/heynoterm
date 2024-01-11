@@ -1,11 +1,11 @@
-from openai import OpenAI
-from typing import Generator
+from openai import OpenAI, AsyncOpenAI
 
 client = OpenAI()
+client = AsyncOpenAI()
 
 
 # Initialize OpenAI client
-def stream_output(input_text) -> Generator[str, None, None]:
+async def stream_output(input_text):
     # Stream the output
     # use chatgpt 3.5 engine
     system_message = """
@@ -21,7 +21,7 @@ def stream_output(input_text) -> Generator[str, None, None]:
         {"role": "system", "content": system_message},
         {"role": "user", "content": user_message},
     ]
-    response = client.chat.completions.create(
+    response = await client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=messages,
         max_tokens=100,
@@ -31,7 +31,7 @@ def stream_output(input_text) -> Generator[str, None, None]:
         stream=True,
     )
 
-    for item in response:
+    async for item in response:
         yield item.choices[0].delta.content
 
 

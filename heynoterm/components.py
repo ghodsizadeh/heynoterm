@@ -1,7 +1,8 @@
 from textual.app import ComposeResult
+from textual.events import Key
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual import log
+from textual import log, work
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
@@ -10,6 +11,7 @@ from rich.console import RenderableType
 
 from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
+from heynoterm.config import has_ai
 
 
 # self.refresh()
@@ -67,6 +69,41 @@ class TextAreaComponent(TextArea):
             evaluator = MathBlockEvaluator()
             evaluator.process_block(text)
             self.post_message(self.MathResultMessage(results=evaluator.results))
+
+    @work(exclusive=True)
+    async def update_text_with_ai(self):
+        if has_ai():
+            from heynoterm.llm import stream_output
+
+            input_text = self.text[:-3]
+            self.text = input_text
+            self.text += "\n"
+            async for output in stream_output(input_text):
+                if output:
+                    print("output", output)
+                    self.text += output
+                    self.refresh()
+
+    async def _on_key(self, event: Key) -> None:
+        await super()._on_key(event)
+        ai_hook = "+++"  # noqa
+        if event.character == "+":  # and has_ai() and self.text.endswith(ai_hook):
+            self.update_text_with_ai()
+        # from heynoterm.llm import stream_output
+        # from asyncio import sleep
+        # input_text = self.text[:-len(ai_hook)]
+        # self.text = input_text
+        # for i in 'abcdefghijklmnopqrstuvwxyz':
+        #     self.text += i
+        #     print('i', i)
+        #     await self.refresh()
+        #     await sleep(0.1)
+
+        # for output in stream_output(input_text):
+        #     if output:
+        #         self.text += output
+
+        # check if it has +++
 
     def action_split_block(self) -> None:
         """Split the block into two blocks."""
