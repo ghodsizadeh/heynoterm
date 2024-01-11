@@ -153,6 +153,8 @@ class MathResult(Static):
     def render(self) -> RenderableType:
         if not self.results:
             return "Results will be displayed here"
-        # return '\n'.join(self.results)
-        return "\n".join(f"{i+1} {res}" for i, res in enumerate(self.results))
-        # return ",".join(f"{key} = {value}" for key, value in self.results.items())
+
+        return "\n".join(
+            f"{f'{res:.5f}' if isinstance(res, float) else res}"
+            for i, res in enumerate(self.results)
+        )
