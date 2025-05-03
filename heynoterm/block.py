@@ -1,11 +1,22 @@
+"""UI component that represents a *block* (text, code, math, etc.)."""
+
+import logging
+
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static
-from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from textual.css.query import NoMatches
+from textual.containers import Horizontal
+
+from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
-from textual.containers import Horizontal
+
+# ----------------------------------------------------------------------------
+# Logging setup
+# ----------------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 
 class BlockComponent(Static):
@@ -31,7 +42,7 @@ class BlockComponent(Static):
                 math_res = MathResult()
                 evaluator = MathBlockEvaluator()
                 evaluator.process_block(self.text)
-                print("---- results ----")
+                logger.debug("Block %s – evaluated math results", self.index)
                 math_res.results = evaluator.results
 
                 yield text_component
@@ -44,7 +55,7 @@ class BlockComponent(Static):
     def on_text_area_component_remove_block(
         self, event: TextAreaComponent.RemoveBlock
     ) -> None:
-        print("remove parent")
+        logger.debug("Removing block component index %s", self.index)
         self.remove()
         dm.remove_block(index=self.index)
 
@@ -79,8 +90,7 @@ class BlockComponent(Static):
     async def on_language_list_language_changed(
         self, event: LanguageList.LanguageChanged
     ) -> None:
-        print("language changed")
-        print(event.language)
+        logger.debug("Block %s – language changed to %s", self.index, event.language)
         self.query_one("LanguageList").remove()
 
         self.action_change_language(language=LanguageType(event.language))

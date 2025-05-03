@@ -1,3 +1,7 @@
+"""Collection of Textual widgets used throughout *HeyNoterm*."""
+
+import logging
+
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
@@ -10,6 +14,12 @@ from rich.console import RenderableType
 
 from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
+
+# ----------------------------------------------------------------------------
+# Logging setup
+# ----------------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 
 # self.refresh()
@@ -63,20 +73,22 @@ class TextAreaComponent(TextArea):
             Block(text=text, language="math" if self.math else self.language),
         )
         if self.math:
-            print("math")
+            logger.debug("TextArea %s – math mode", self.index)
             evaluator = MathBlockEvaluator()
             evaluator.process_block(text)
             self.post_message(self.MathResultMessage(results=evaluator.results))
 
     def action_split_block(self) -> None:
         """Split the block into two blocks."""
-        print("split block")
+        logger.debug("TextArea %s – split block requested", self.index)
         # for now select text before cursor
         self.selection = Selection((0, 0), self.get_cursor_word_right_location())
         # get text before cursor and after cursor
         before_text = self.selected_text
         after_text = self.text[len(before_text) :]
-        print(before_text, after_text)
+        logger.debug(
+            "TextArea %s – before: %s after: %s", self.index, before_text, after_text
+        )
         # TODO: remove block and add two blocks
 
     def action_next_block(self) -> None:
@@ -96,7 +108,7 @@ class TextAreaComponent(TextArea):
             pass
 
     def action_change_language(self) -> None:
-        print("change language")
+        logger.debug("TextArea %s – show language list", self.index)
         self.post_message(self.ChangeLanguageList())
 
     def action_remove_block(self) -> None:
@@ -106,10 +118,9 @@ class TextAreaComponent(TextArea):
         log(q)
         for i in q:
             log(i)
-        print(q)
-        print("remove child")
+        logger.debug("TextArea %s – remove block", self.index)
         self.post_message(self.RemoveBlock())
-        print("remove after child")
+        logger.debug("TextArea %s – block removed signal posted", self.index)
         # dm.remove_block(index=self.index)
 
 
@@ -119,8 +130,10 @@ class LanguageList(Static):
     def compose(self) -> ComposeResult:
         with RadioSet(id="language_list"):
             for language in LanguageType:
-                print(
-                    "xx", self.language, language.value, language.value == self.language
+                logger.debug(
+                    "LanguageList – comparing %s with current %s",
+                    language.value,
+                    self.language,
                 )
                 yield RadioButton(
                     language.value,
@@ -129,8 +142,11 @@ class LanguageList(Static):
                 )
 
     async def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
-        print(event.pressed.value, "was pressed")
-        print(event.pressed.label, "was pressed")
+        logger.debug(
+            "LanguageList – %s selected (label %s)",
+            event.pressed.value,
+            event.pressed.label,
+        )
         self.post_message(self.LanguageChanged(str(event.pressed.label).lower()))
 
     class LanguageChanged(Message):
