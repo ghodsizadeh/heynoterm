@@ -17,6 +17,7 @@ class HeyNoteApp(App):
         ("d", "toggle_dark", "Toggle dark mode"),
         # ("a", "add_block", "Add"),
         ("ctrl+n", "add_block", "New Block"),
+        ("ctrl+/", "show_help", "Show Help"),
     ]
     count = reactive(0)
 
@@ -97,6 +98,67 @@ class HeyNoteApp(App):
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
         self.dark = not self.dark  # type: ignore
+
+    # ---------------------------------------------------------------------
+    #   Help / command palette
+    # ---------------------------------------------------------------------
+
+    def _build_help_text(self) -> str:
+        """Collect key bindings from the application and widgets.
+
+        Returns a ready-to-render *plain* text block listing every binding in
+        the format "<key> – <description>".
+        """
+
+        lines: list[str] = []
+
+        def _extend(label: str, bindings: list[tuple[str, str, str]]):
+            if not bindings:
+                return
+            lines.append(f"{label}:")
+            for key, _action, description in bindings:
+                lines.append(f"  {key:<10} {description}")
+            lines.append("")
+
+        # App-level bindings
+        _extend("Global", self.BINDINGS)
+
+        # Widget-specific – currently only TextAreaComponent has custom ones.
+        from heynoterm.components import TextAreaComponent  # local import
+
+        _extend("Inside Text Area", TextAreaComponent.BINDINGS)
+
+        return "\n".join(lines)
+
+    def action_show_help(self) -> None:
+        """Toggle an on-screen help overlay (Ctrl+/)."""
+
+        from textual.widgets import Static  # imported here to avoid circular deps
+
+        existing_help = self.query("#help_modal").first()
+        if existing_help is not None:
+            existing_help.remove()
+            return
+
+        help_text = self._build_help_text()
+
+        class HelpModal(Static):
+            BINDINGS = [("escape", "close", "Close")]
+
+            def action_close(self):  # noqa: D401 – Textual naming convention
+                self.remove()
+
+        modal = HelpModal(help_text, id="help_modal")
+        # Give it a simple style via CSS classes – this keeps the code short.
+        modal.styles.border = ("round", "white")
+        modal.styles.background = "black"
+        modal.styles.padding = (1, 2)
+        modal.styles.dock = "top"
+        modal.styles.height = "auto"
+
+        self.mount(modal)
+        modal.scroll_visible()
+        modal.focus()
 
 
 def main() -> None:

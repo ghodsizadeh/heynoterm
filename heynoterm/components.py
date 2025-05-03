@@ -40,7 +40,7 @@ class TextAreaComponent(TextArea):
     math_result = reactive({})
 
     # Key bindings focused on intuitiveness:
-    #   - Ctrl+Down / Ctrl+Up : move between blocks
+    #   - Ctrl+J / Ctrl+K    : move between blocks (commonly used in many TUIs)
     #   - Ctrl+D             : delete current block (unchanged)
     #   - Ctrl+L             : open language selection
     #   - Ctrl+A             : select all text (TextArea default)
@@ -48,10 +48,11 @@ class TextAreaComponent(TextArea):
     BINDINGS = [
         ("ctrl+d", "remove_block", "Remove Block"),
         ("ctrl+l", "change_language", "Change Language"),
-        ("ctrl+down", "next_block", "Next Block"),
-        ("ctrl+up", "previous_block", "Previous Block"),
+        ("ctrl+j", "next_block", "Next Block"),
+        ("ctrl+k", "previous_block", "Previous Block"),
         ("ctrl+a", "select_all", "Select All"),
         ("ctrl+z", "split_block", "Split Block"),
+        ("ctrl+h", "action_show_help", "Show Help"),
     ]
 
     class RemoveBlock(Message):
@@ -100,7 +101,7 @@ class TextAreaComponent(TextArea):
         # TODO: remove block and add two blocks
 
     def action_next_block(self) -> None:
-        """Move focus to the *next* text-area (Ctrl+Down)."""
+        """Move focus to the *next* text-area (Ctrl+J)."""
 
         try:
             self.screen.query_one(f"#TextAreaComponent_{self.index + 1}").focus()
@@ -109,7 +110,7 @@ class TextAreaComponent(TextArea):
             logger.debug("TextArea %s – next_block: already last", self.index)
 
     def action_previous_block(self) -> None:
-        """Move focus to the *previous* text-area (Ctrl+Up)."""
+        """Move focus to the *previous* text-area (Ctrl+K)."""
 
         if self.index == 0:
             logger.debug("TextArea %s – previous_block: already first", self.index)
