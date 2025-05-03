@@ -31,7 +31,7 @@ class BlockComponent(Static):
         text_component = TextAreaComponent(
             self.text, name=self.text, id=f"TextAreaComponent_{self.index}"
         )
-        text_component.register_language("javascript", "javascript")
+        # text_component.register_language("javascript", "javascript")
         text_component.language = "python" if self.language == "math" else self.language
         text_component.math = self.language == "math"
         # theme="dracula" or "monokai" %2 == 0

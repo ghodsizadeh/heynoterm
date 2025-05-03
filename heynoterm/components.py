@@ -5,7 +5,9 @@ import logging
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static, TextArea, RadioSet, RadioButton
-from textual import log
+
+# ``textual.log`` was used previously for simple debugging – replaced by the
+# *logging* module, therefore the import is no longer required.
 from textual.message import Message
 from textual.css.query import NoMatches
 from textual.widgets.text_area import Selection
@@ -37,11 +39,17 @@ class TextAreaComponent(TextArea):
     math = reactive(False)
     math_result = reactive({})
 
+    # Key bindings focused on intuitiveness:
+    #   - Ctrl+Down / Ctrl+Up : move between blocks
+    #   - Ctrl+D             : delete current block (unchanged)
+    #   - Ctrl+L             : open language selection
+    #   - Ctrl+A             : select all text (TextArea default)
+    #   - Ctrl+Z             : experimental – split block
     BINDINGS = [
         ("ctrl+d", "remove_block", "Remove Block"),
         ("ctrl+l", "change_language", "Change Language"),
-        ("ctrl+n", "next_block", "Next Block"),
-        ("ctrl+b", "previous_block", "Previous Block"),
+        ("ctrl+down", "next_block", "Next Block"),
+        ("ctrl+up", "previous_block", "Previous Block"),
         ("ctrl+a", "select_all", "Select All"),
         ("ctrl+z", "split_block", "Split Block"),
     ]
@@ -92,20 +100,30 @@ class TextAreaComponent(TextArea):
         # TODO: remove block and add two blocks
 
     def action_next_block(self) -> None:
-        """Move focus to next text area"""
+        """Move focus to the *next* text-area (Ctrl+Down)."""
+
         try:
-            q = self.screen.query_one(f"#TextAreaComponent_{self.index + 1}")
-            q.focus()
+            self.screen.query_one(f"#TextAreaComponent_{self.index + 1}").focus()
         except NoMatches:
-            pass
+            # Already on the last block – nothing to do.
+            logger.debug("TextArea %s – next_block: already last", self.index)
 
     def action_previous_block(self) -> None:
-        """Move focus to previous text area"""
+        """Move focus to the *previous* text-area (Ctrl+Up)."""
+
+        if self.index == 0:
+            logger.debug("TextArea %s – previous_block: already first", self.index)
+            return
+
         try:
-            q = self.screen.query_one(f"#TextAreaComponent_{self.index - 1}")
-            q.focus()
+            self.screen.query_one(f"#TextAreaComponent_{self.index - 1}").focus()
         except NoMatches:
-            pass
+            # Shouldn’t happen – indices might be out of sync.
+            logger.warning(
+                "TextArea %s – previous_block: NoMatches for index %s",
+                self.index,
+                self.index - 1,
+            )
 
     def action_change_language(self) -> None:
         logger.debug("TextArea %s – show language list", self.index)
@@ -114,10 +132,10 @@ class TextAreaComponent(TextArea):
     def action_remove_block(self) -> None:
         """Called to remove a timer."""
 
-        q = self.query()
-        log(q)
-        for i in q:
-            log(i)
+        # Emit detailed information about children for debugging purposes.
+        for child in self.query():
+            logger.debug("TextArea %s – child: %s", self.index, child)
+
         logger.debug("TextArea %s – remove block", self.index)
         self.post_message(self.RemoveBlock())
         logger.debug("TextArea %s – block removed signal posted", self.index)

@@ -16,8 +16,7 @@ class HeyNoteApp(App):
     BINDINGS = [
         ("d", "toggle_dark", "Toggle dark mode"),
         # ("a", "add_block", "Add"),
-        ("ctrl+a", "add_block", "Add A"),
-        ("r", "remove_stopwatch", "Remove"),
+        ("ctrl+n", "add_block", "New Block"),
     ]
     count = reactive(0)
 
@@ -32,13 +31,58 @@ class HeyNoteApp(App):
 
     def action_add_block(self) -> None:
         """An action to add a text block."""
-        new: BlockComponent = BlockComponent()
-        new.text = f"Hello {self.count}"
-        new.index = self.count
-        self.count += 1
+        # Determine insertion point – by default append at the end, but if
+        # a TextArea inside a Block is currently focused we insert *after* its
+        # parent block so the workflow feels natural (Ctrl+N -> new block
+        # below the current one).
 
-        self.query_one("#blocks").mount(new)
-        dm.add_block(block=Block(text=new.text, language=new.language))
+        # ------------------------------------------------------------------
+        #   1. Detect current block / index
+        # ------------------------------------------------------------------
+        focused_widget = self.focused
+        insert_index = self.count  # default – append
+        container = self.query_one("#blocks")
+
+        if focused_widget is not None:
+            # Walk up the widget tree to find the surrounding BlockComponent.
+            for ancestor in focused_widget.ancestors_with_self:
+                if isinstance(ancestor, BlockComponent):
+                    insert_index = ancestor.index + 1
+                    break
+
+        # ------------------------------------------------------------------
+        #   2. Build new block widget & update indices afterwards
+        # ------------------------------------------------------------------
+        new = BlockComponent()
+        new.text = ""
+        new.index = insert_index
+
+        dm.add_block(
+            block=Block(text=new.text, language=new.language), index=insert_index
+        )
+
+        # Mount in the correct position.
+        if insert_index >= len(container.children):
+            container.mount(new)
+        else:
+            # Mount *after* the block at (insert_index -1) because indices are
+            # 0-based and we want the new block **below** the current one.
+            try:
+                target_widget = list(container.children)[insert_index - 1]
+                container.mount(new, after=target_widget)
+            except IndexError:
+                # Fallback – append if index calculation failed for some reason.
+                container.mount(new)
+
+        # ------------------------------------------------------------------
+        #   3. Re-index existing widgets to maintain consistent IDs
+        # ------------------------------------------------------------------
+        for i, block_widget in enumerate(container.children):
+            if isinstance(block_widget, BlockComponent):
+                block_widget.index = i
+
+        self.count = len(container.children)
+
         new.scroll_visible()
         new.focus()
 
