@@ -10,7 +10,6 @@ from textual.widgets import Static, TextArea, RadioSet, RadioButton
 # *logging* module, therefore the import is no longer required.
 from textual.message import Message
 from textual.css.query import NoMatches
-from textual.widgets.text_area import Selection
 from rich.console import RenderableType
 
 
@@ -51,7 +50,7 @@ class TextAreaComponent(TextArea):
         ("ctrl+j", "next_block", "Next Block"),
         ("ctrl+k", "previous_block", "Previous Block"),
         ("ctrl+a", "select_all", "Select All"),
-        ("ctrl+z", "split_block", "Split Block"),
+        ("ctrl+t", "split_block", "Split Block"),
     ]
 
     class RemoveBlock(Message):
@@ -71,6 +70,14 @@ class TextAreaComponent(TextArea):
             self.results = results
             super().__init__()
 
+    class SplitBlock(Message):
+        """A message to split the current block at cursor."""
+
+        def __init__(self, before: str, after: str) -> None:
+            super().__init__()
+            self.before = before
+            self.after = after
+
     async def on_text_area_changed(self, event: TextArea.Changed):
         """Save the text on key press on a file."""
 
@@ -87,17 +94,21 @@ class TextAreaComponent(TextArea):
             self.post_message(self.MathResultMessage(results=evaluator.results))
 
     def action_split_block(self) -> None:
-        """Split the block into two blocks."""
+        """Split the block into two blocks at the cursor position."""
         logger.debug("TextArea %s – split block requested", self.index)
-        # for now select text before cursor
-        self.selection = Selection((0, 0), self.get_cursor_word_right_location())
-        # get text before cursor and after cursor
-        before_text = self.selected_text
-        after_text = self.text[len(before_text) :]
+        # Determine split offset from cursor location
+        row, col = self.cursor_location
+        full_text = self.text
+        # Compute absolute index: sum lengths of lines + newlines
+        lines = full_text.split("\n")
+        split_offset = sum(len(line) + 1 for line in lines[:row]) + col
+        before_text = full_text[:split_offset]
+        after_text = full_text[split_offset:]
         logger.debug(
-            "TextArea %s – before: %s after: %s", self.index, before_text, after_text
+            "TextArea %s – before: %r after: %r", self.index, before_text, after_text
         )
-        # TODO: remove block and add two blocks
+        # Post split message to parent component
+        self.post_message(self.SplitBlock(before_text, after_text))
 
     def action_next_block(self) -> None:
         """Move focus to the *next* text-area (Ctrl+J)."""

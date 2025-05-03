@@ -14,12 +14,12 @@ HeyNoterm is a scratch pad for the terminal, designed to help you quickly jot do
 
 ## Features
 
-- Add new blocks (`Ctrl+N`), delete blocks (`Ctrl+D`), split blocks (`Ctrl+Z`).
+- Add new blocks (`Ctrl+N`), delete blocks (`Ctrl+D`), split blocks (`Ctrl+T`).
 - Navigate between blocks (`Ctrl+J` / `Ctrl+K`).
 - Change block language (`Ctrl+L`): Python, Markdown, Math.
 - Real-time math evaluation in math mode.
 - Persistent storage of all blocks in `~/.heynoterm.json`.
-- Toggle dark/light mode (`D`).
+<!-- - Toggle dark/light mode (`D`). -->
 - On-screen help (`Ctrl+/`) listing all keybindings.
 
 ## Installation

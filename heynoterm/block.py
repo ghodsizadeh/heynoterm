@@ -59,6 +59,40 @@ class BlockComponent(Static):
         self.remove()
         dm.remove_block(index=self.index)
 
+    def on_text_area_component_split_block(
+        self, event: TextAreaComponent.SplitBlock
+    ) -> None:
+        """Handle split-block event: update current and insert new block."""
+        before_text = event.before
+        after_text = event.after
+        idx = self.index
+        # Update current block state and UI
+        dm.update_block(idx, Block(text=before_text, language=self.language))
+        try:
+            text_area = self.query_one(TextAreaComponent)
+            text_area.text = before_text
+            text_area.refresh()
+        except Exception:
+            pass
+
+        # Insert new block in state
+        dm.add_block(
+            block=Block(text=after_text, language=self.language), index=idx + 1
+        )
+        # Create and mount new block component
+        new_block = BlockComponent()
+        new_block.text = after_text
+        new_block.language = self.language
+        container = self.parent
+        container.mount(new_block, after=self)
+        # Re-index blocks
+        for i, child in enumerate(container.children):
+            if isinstance(child, BlockComponent):
+                child.index = i
+        # Scroll to and focus new block
+        new_block.scroll_visible()
+        new_block.focus()
+
     async def on_text_area_component_change_language_list(
         self, event: TextAreaComponent.ChangeLanguageList
     ) -> None:
