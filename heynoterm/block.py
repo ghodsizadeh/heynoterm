@@ -1,11 +1,22 @@
+"""UI component that represents a *block* (text, code, math, etc.)."""
+
+import logging
+
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Static
-from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from textual.css.query import NoMatches
+from textual.containers import Horizontal
+
+from heynoterm.components import LanguageList, MathResult, TextAreaComponent
 from heynoterm.math_evaluator import MathBlockEvaluator
 from heynoterm.state import dm, Block, Language as LanguageType
-from textual.containers import Horizontal
+
+# ----------------------------------------------------------------------------
+# Logging setup
+# ----------------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
 
 
 class BlockComponent(Static):
@@ -20,7 +31,7 @@ class BlockComponent(Static):
         text_component = TextAreaComponent(
             self.text, name=self.text, id=f"TextAreaComponent_{self.index}"
         )
-        text_component.register_language("javascript", "javascript")
+        # text_component.register_language("javascript", "javascript")
         text_component.language = "python" if self.language == "math" else self.language
         text_component.math = self.language == "math"
         # theme="dracula" or "monokai" %2 == 0
@@ -31,7 +42,7 @@ class BlockComponent(Static):
                 math_res = MathResult()
                 evaluator = MathBlockEvaluator()
                 evaluator.process_block(self.text)
-                print("---- results ----")
+                logger.debug("Block %s – evaluated math results", self.index)
                 math_res.results = evaluator.results
 
                 yield text_component
@@ -44,9 +55,43 @@ class BlockComponent(Static):
     def on_text_area_component_remove_block(
         self, event: TextAreaComponent.RemoveBlock
     ) -> None:
-        print("remove parent")
+        logger.debug("Removing block component index %s", self.index)
         self.remove()
         dm.remove_block(index=self.index)
+
+    def on_text_area_component_split_block(
+        self, event: TextAreaComponent.SplitBlock
+    ) -> None:
+        """Handle split-block event: update current and insert new block."""
+        before_text = event.before
+        after_text = event.after
+        idx = self.index
+        # Update current block state and UI
+        dm.update_block(idx, Block(text=before_text, language=self.language))
+        try:
+            text_area = self.query_one(TextAreaComponent)
+            text_area.text = before_text
+            text_area.refresh()
+        except Exception:
+            pass
+
+        # Insert new block in state
+        dm.add_block(
+            block=Block(text=after_text, language=self.language), index=idx + 1
+        )
+        # Create and mount new block component
+        new_block = BlockComponent()
+        new_block.text = after_text
+        new_block.language = self.language
+        container = self.parent
+        container.mount(new_block, after=self)
+        # Re-index blocks
+        for i, child in enumerate(container.children):
+            if isinstance(child, BlockComponent):
+                child.index = i
+        # Scroll to and focus new block
+        new_block.scroll_visible()
+        new_block.focus()
 
     async def on_text_area_component_change_language_list(
         self, event: TextAreaComponent.ChangeLanguageList
@@ -79,8 +124,7 @@ class BlockComponent(Static):
     async def on_language_list_language_changed(
         self, event: LanguageList.LanguageChanged
     ) -> None:
-        print("language changed")
-        print(event.language)
+        logger.debug("Block %s – language changed to %s", self.index, event.language)
         self.query_one("LanguageList").remove()
 
         self.action_change_language(language=LanguageType(event.language))
