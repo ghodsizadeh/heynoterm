@@ -3,6 +3,7 @@ from typing import List, Optional
 from pathlib import Path
 import json
 from enum import Enum
+import os
 
 
 class Language(Enum):
@@ -88,13 +89,18 @@ class DataManager:
     def __init__(self, path: Optional[Path] = None) -> None:
         """
         Initialize the data manager.
-        With a default path for all OS.
-        to save the data.
+        If `path` is provided, use that.
+        Otherwise, check HEYNOTERM_STATE_PATH env var; if set, use that.
+        Else default to ~/.heynoterm.json.
         """
-        if path is None:
-            self.path = Path.home() / ".heynoterm.json"
-        else:
+        if path is not None:
             self.path = path
+        else:
+            env_path = os.getenv("HEYNOTERM_STATE_PATH")
+            if env_path:
+                self.path = Path(env_path)
+            else:
+                self.path = Path.home() / ".heynoterm.json"
         self.state: AppState = AppState()
         self.load()
 

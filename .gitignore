@@ -41,3 +41,4 @@ build/
 __pypackages__/
 .poetry/
 .poetry.lock
+.heynoterm.json

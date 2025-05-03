@@ -1,3 +1,7 @@
+import argparse
+import os
+import sys
+import pathlib
 from textual.app import App, ComposeResult
 from textual.containers import ScrollableContainer
 from textual.reactive import reactive
@@ -7,6 +11,35 @@ from heynoterm.state import AppState
 from heynoterm.block import BlockComponent
 from heynoterm.state import dm, Block
 
+# Parse CLI args for state file override (must run before state import)
+_parser = argparse.ArgumentParser(add_help=False)
+_parser.add_argument("-s", "--state", help="Path to state file")
+_parser.add_argument(
+    "-l",
+    "--local",
+    action="store_true",
+    help="Use ./.heynoterm.json in current directory",
+)
+_args, _unknown = _parser.parse_known_args()
+if _args.state:
+    os.environ["HEYNOTERM_STATE_PATH"] = _args.state
+if _args.local:
+    os.environ["HEYNOTERM_STATE_PATH"] = str(pathlib.Path.cwd() / ".heynoterm.json")
+# Remove custom args from sys.argv to avoid conflicts with Textual or other parsers
+_new_argv = [sys.argv[0]]
+_skip_next = False
+for _arg in sys.argv[1:]:
+    if _skip_next:
+        _skip_next = False
+        continue
+    if _arg in ("-s", "--state"):
+        _skip_next = True
+        continue
+    if _arg in ("-l", "--local"):
+        continue
+    _new_argv.append(_arg)
+sys.argv = _new_argv
+
 
 class HeyNoteApp(App):
     """A Textual app to manage stopwatches."""
@@ -14,7 +47,7 @@ class HeyNoteApp(App):
     CSS_PATH = "heynoterm.tcss"
 
     BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"),
+        # ("d", "toggle_dark", "Toggle dark mode"),
         # ("a", "add_block", "Add"),
         ("ctrl+n", "add_block", "New Block"),
     ]
@@ -22,6 +55,7 @@ class HeyNoteApp(App):
 
     def compose(self) -> ComposeResult:
         """Called to add widgets to the app."""
+        self.dark = True
         yield Header()
         yield Footer()
         state: AppState = dm.state
