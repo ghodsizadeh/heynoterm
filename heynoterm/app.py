@@ -17,7 +17,6 @@ class HeyNoteApp(App):
         ("d", "toggle_dark", "Toggle dark mode"),
         # ("a", "add_block", "Add"),
         ("ctrl+n", "add_block", "New Block"),
-        ("ctrl+/", "show_help", "Show Help"),
     ]
     count = reactive(0)
 

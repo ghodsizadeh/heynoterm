@@ -52,7 +52,6 @@ class TextAreaComponent(TextArea):
         ("ctrl+k", "previous_block", "Previous Block"),
         ("ctrl+a", "select_all", "Select All"),
         ("ctrl+z", "split_block", "Split Block"),
-        ("ctrl+h", "action_show_help", "Show Help"),
     ]
 
     class RemoveBlock(Message):

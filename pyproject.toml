@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "heynoterm"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Mehdi Ghodsizadeh", email = "mehdi.ghodsizadeh@gmail.com" },
 ]
