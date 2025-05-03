@@ -8,7 +8,7 @@ HeyNoterm is a scratch pad for the terminal, designed to help you quickly jot do
 - Organize your thoughts in discrete blocks of text.
 - Syntax highlighting for code snippets (Python, Markdown, etc.).
 - Math evaluation mode for quick calculations.
-- Persistent JSON storage (saved to `~/.heynoterm.json`) so your notes survive restarts.
+- Persistent JSON storage (saved by default to `~/.heynoterm.json`; see **Custom State File Location** below) so your notes survive restarts.
 - Context-aware block operations: add, delete, move, split, and change language on the fly.
 - Dark-mode toggle and on-screen help overlay.
 
@@ -18,7 +18,7 @@ HeyNoterm is a scratch pad for the terminal, designed to help you quickly jot do
 - Navigate between blocks (`Ctrl+J` / `Ctrl+K`).
 - Change block language (`Ctrl+L`): Python, Markdown, Math.
 - Real-time math evaluation in math mode.
-- Persistent storage of all blocks in `~/.heynoterm.json`.
+- Persistent storage of all blocks in a state file, by default `~/.heynoterm.json`.
 <!-- - Toggle dark/light mode (`D`). -->
 - On-screen help (`Ctrl+/`) listing all keybindings.
 
@@ -62,7 +62,28 @@ uvx heynoterm
 3. Use keybindings to manage blocks and switch modes.
 4. Press `Ctrl+C` to exit.
 
-All your blocks are automatically saved to `~/.heynoterm.json`.
+All your blocks are automatically saved to a state file (by default `~/.heynoterm.json`). See **Custom State File Location** below to change the storage location.
+
+## Custom State File Location
+
+By default, HeyNoterm stores its state in `~/.heynoterm.json`. You can override this behavior using command-line options:
+
+- `-l`, `--local`: Use `./.heynoterm.json` in the current working directory.
+- `-s <path>`, `--state <path>`: Specify a custom path for the state file.
+
+Examples:
+
+```bash
+heynoterm -l
+heynoterm --state /path/to/my_notes.json
+```
+
+If you install via  `uvx`, pass options after `--`:
+
+```bash
+uvx heynoterm -- -l
+uvx heynoterm -- --state /path/to/my_notes.json
+```
 
 ## Contributing
 
